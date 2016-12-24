@@ -37,7 +37,7 @@ public class FfpdpService
 			FFPDP_MAGIC = "https://ffpdp.net/".getBytes("UTF-8");
 			SLASH = "/".getBytes("UTF-8");
 		}
-		catch(UnsupportedEncodingException exception)
+		catch (UnsupportedEncodingException exception)
 		{
 			throw new RuntimeException(exception); //Should not happen
 		}
@@ -45,7 +45,7 @@ public class FfpdpService
 
 	public static FfpdpService getInstance()
 	{
-		if(instance==null)
+		if (instance == null)
 			instance = new FfpdpService();
 
 		return instance;
@@ -55,57 +55,67 @@ public class FfpdpService
 	{
 		FfpdpVersion ffpdpVersion = ffpdpTag.getFfpdpVersion();
 
-		if(ffpdpVersion == FfpdpVersion.V2)
-			writeFfpdpTagV2(os, (FfpdpTagV2)ffpdpTag);
+		if (ffpdpVersion == FfpdpVersion.V2)
+			writeFfpdpTagV2(os, (FfpdpTagV2) ffpdpTag);
 		else
-			throw new NotImplementedFfpdpException("FFPDP Version "+ffpdpVersion+" not implemented");
+			throw new NotImplementedFfpdpException("FFPDP Version " + ffpdpVersion + " not implemented");
 	}
 
 	public byte[] getFfpdpTagBytes(FfpdpTag ffpdpTag) throws IOException, FfpdpException
 	{
 		FfpdpVersion ffpdpVersion = ffpdpTag.getFfpdpVersion();
 
-		if(ffpdpVersion == FfpdpVersion.V2)
-			return getFfpdpTagV2Bytes((FfpdpTagV2)ffpdpTag);
+		if (ffpdpVersion == FfpdpVersion.V2)
+			return getFfpdpTagV2Bytes((FfpdpTagV2) ffpdpTag);
 		else
-			throw new NotImplementedFfpdpException("FFPDP Version "+ffpdpVersion+" not implemented");
+			throw new NotImplementedFfpdpException("FFPDP Version " + ffpdpVersion + " not implemented");
 	}
 
 	public FfpdpTag readFfpdpTag(byte[] ffpdpPrefixedData) throws IOException, FfpdpException
 	{
-		try(ByteArrayInputStream bais = new ByteArrayInputStream(ffpdpPrefixedData))
+		try (ByteArrayInputStream bais = new ByteArrayInputStream(ffpdpPrefixedData))
 		{
 			return readFfpdpTag(bais);
 		}
+	}
+
+	public FfpdpTagV2 readFfpdpTagV2(InputStream is) throws IOException, FfpdpException
+	{
+		FfpdpTag ffpdpTag = readFfpdpTag(is);
+
+		if (ffpdpTag.getFfpdpVersion() != FfpdpVersion.V2)
+			throw new FfpdpException("Not FFPDP tag V2");
+
+		return (FfpdpTagV2) ffpdpTag;
 	}
 
 	public FfpdpTag readFfpdpTag(InputStream is) throws IOException, FfpdpException
 	{
 		byte[] magic = IoUtil.read(is, FFPDP_MAGIC.length);
 
-		if(!Arrays.equals(magic, FFPDP_MAGIC))
+		if (!Arrays.equals(magic, FFPDP_MAGIC))
 			throw new InvalidTagFfpdpException("Invalid FFPDP Magic number");
 
 		FfpdpVersion ffpdpVersion = readFfpdpVersion(is);
 
-		if(ffpdpVersion == FfpdpVersion.V2)
-			return readFfpdpTagV2(is);
+		if (ffpdpVersion == FfpdpVersion.V2)
+			return readFfpdpTagV2WithoutVerify(is);
 		else
-			throw new NotImplementedFfpdpException("FFPDP Version "+ffpdpVersion+" not implemented");
+			throw new NotImplementedFfpdpException("FFPDP Version " + ffpdpVersion + " not implemented");
 	}
 
 	public boolean isOfType(Path file, int uid, int type) throws IOException, FfpdpException
 	{
 		try
 		{
-			if(Files.size(file)<FFPDP_MAGIC.length)
+			if (Files.size(file) < FFPDP_MAGIC.length)
 				return false;
 
 			FfpdpTagV2 ffpdpTag = (FfpdpTagV2) readFfpdpTag(new FileInputStream(file.toFile()));
 
 			return ffpdpTag.getUid() == uid && ffpdpTag.getType() == type;
 		}
-		catch(InvalidTagFfpdpException exception)
+		catch (InvalidTagFfpdpException exception)
 		{
 			return false;
 		}
@@ -125,7 +135,7 @@ public class FfpdpService
 
 	private byte[] getFfpdpTagV2Bytes(FfpdpTagV2 ffpdpTagV2) throws IOException
 	{
-		try(ByteArrayOutputStream baos = new ByteArrayOutputStream())
+		try (ByteArrayOutputStream baos = new ByteArrayOutputStream())
 		{
 			writeFfpdpTagV2(baos, ffpdpTagV2);
 
@@ -135,16 +145,16 @@ public class FfpdpService
 
 	private void writeFfpdpTagV2(OutputStream os, FfpdpTagV2 ffpdpTagV2) throws IOException
 	{
-		if(!validateFfpdpTagV2Number(ffpdpTagV2.getUid(), FFPDP_V2_UID_NUM_BYTES, 1))
+		if (!validateFfpdpTagV2Number(ffpdpTagV2.getUid(), FFPDP_V2_UID_NUM_BYTES, 1))
 			throw new IllegalArgumentException("Invalid FFPDPV2 UID");
 
-		if(!validateFfpdpTagV2Number(ffpdpTagV2.getType(), FFPDP_V2_TYPE_NUM_BYTES, 1))
+		if (!validateFfpdpTagV2Number(ffpdpTagV2.getType(), FFPDP_V2_TYPE_NUM_BYTES, 1))
 			throw new IllegalArgumentException("Invalid FFPDPV2 type");
 
-		if(!validateFfpdpTagV2Number(ffpdpTagV2.getMajorVersion(), FFPDP_V2_MAJOR_VERSION_NUM_BYTES, 0))
+		if (!validateFfpdpTagV2Number(ffpdpTagV2.getMajorVersion(), FFPDP_V2_MAJOR_VERSION_NUM_BYTES, 0))
 			throw new IllegalArgumentException("Invalid FFPDPV2 major version");
 
-		if(!validateFfpdpTagV2Number(ffpdpTagV2.getMinorVersion(), FFPDP_V2_MINOR_VERSION_NUM_BYTES, 0))
+		if (!validateFfpdpTagV2Number(ffpdpTagV2.getMinorVersion(), FFPDP_V2_MINOR_VERSION_NUM_BYTES, 0))
 			throw new IllegalArgumentException("Invalid FFPDPV2 minor version");
 
 		os.write(FFPDP_MAGIC);
@@ -163,19 +173,19 @@ public class FfpdpService
 	{
 		String textnumber = Integer.toString(number);
 
-		if(textnumber.length()>numberOfBytes)
+		if (textnumber.length() > numberOfBytes)
 			throw new IllegalArgumentException("number must fit in numberOfBytes");
 
 		String paddedNumber = textnumber;
 
-		for(int i=0; i<numberOfBytes-textnumber.length(); i++)
-			paddedNumber = "0"+paddedNumber;
+		for (int i = 0; i < numberOfBytes - textnumber.length(); i++)
+			paddedNumber = "0" + paddedNumber;
 
 		try
 		{
 			return paddedNumber.getBytes("UTF-8");
 		}
-		catch(UnsupportedEncodingException exception)
+		catch (UnsupportedEncodingException exception)
 		{
 			throw new RuntimeException(exception); //Should not happen
 		}
@@ -186,7 +196,7 @@ public class FfpdpService
 		return number >= minimumValue && number <= (Math.pow(10, numberOfBytes) - 1);
 	}
 
-	private FfpdpTagV2 readFfpdpTagV2(InputStream is) throws IOException, InvalidTagFfpdpException
+	private FfpdpTagV2 readFfpdpTagV2WithoutVerify(InputStream is) throws IOException, InvalidTagFfpdpException
 	{
 		int uid;
 		int type;
@@ -211,7 +221,7 @@ public class FfpdpService
 		{
 			return readFfpdpEncodedNumber(IoUtil.read(is, FFPDP_V2_UID_NUM_BYTES));
 		}
-		catch(NumberFormatException exception)
+		catch (NumberFormatException exception)
 		{
 			throw new InvalidTagFfpdpException("Invalid FFPDPV2 UID");
 		}
@@ -223,7 +233,7 @@ public class FfpdpService
 		{
 			return readFfpdpEncodedNumber(IoUtil.read(is, FFPDP_V2_TYPE_NUM_BYTES));
 		}
-		catch(NumberFormatException exception)
+		catch (NumberFormatException exception)
 		{
 			throw new InvalidTagFfpdpException("Invalid FFPDPV2 type");
 		}
@@ -235,7 +245,7 @@ public class FfpdpService
 		{
 			return readFfpdpEncodedNumber(IoUtil.read(is, FFPDP_V2_MAJOR_VERSION_NUM_BYTES));
 		}
-		catch(NumberFormatException exception)
+		catch (NumberFormatException exception)
 		{
 			throw new InvalidTagFfpdpException("Invalid FFPDPV2 major version number");
 		}
@@ -247,7 +257,7 @@ public class FfpdpService
 		{
 			return readFfpdpEncodedNumber(IoUtil.read(is, FFPDP_V2_MINOR_VERSION_NUM_BYTES));
 		}
-		catch(NumberFormatException exception)
+		catch (NumberFormatException exception)
 		{
 			throw new InvalidTagFfpdpException("Invalid FFPDPV2 minor version number");
 		}
@@ -257,7 +267,7 @@ public class FfpdpService
 	{
 		byte[] actual = IoUtil.read(is, expected.length);
 
-		if(!Arrays.equals(actual, expected))
+		if (!Arrays.equals(actual, expected))
 			throw new InvalidTagFfpdpException("Invalid FFPDP tag general syntax");
 	}
 
@@ -270,7 +280,7 @@ public class FfpdpService
 
 			return ffpdpVersion;
 		}
-		catch(IllegalArgumentException exception)
+		catch (IllegalArgumentException exception)
 		{
 			throw new InvalidTagFfpdpException("Invalid FFPDP version number", exception);
 		}
