@@ -116,6 +116,13 @@ public class FfpdpService
 		return isOfType(file, ffpdpTagV2.getUid(), ffpdpTagV2.getType());
 	}
 
+	public boolean isSameTypeAndMajorVersion(FfpdpTagV2 ffpdpTagV2A, FfpdpTagV2 ffpdpTagV2B)
+	{
+		return ffpdpTagV2A.getUid() == ffpdpTagV2B.getUid() &&
+				ffpdpTagV2A.getType() == ffpdpTagV2B.getType() &&
+				ffpdpTagV2A.getMajorVersion() == ffpdpTagV2B.getMajorVersion();
+	}
+
 	private byte[] getFfpdpTagV2Bytes(FfpdpTagV2 ffpdpTagV2) throws IOException
 	{
 		try(ByteArrayOutputStream baos = new ByteArrayOutputStream())
