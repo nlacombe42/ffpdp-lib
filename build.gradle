@@ -4,14 +4,14 @@ apply plugin: 'maven'
 defaultTasks 'tasks'
 
 group = 'net.nlacombe'
-version = '1.0.3'
+version = '2.0.0'
 
-sourceCompatibility = 1.8
-targetCompatibility = 1.8
+sourceCompatibility = 9
+targetCompatibility = 9
 
 dependencies {
-	compile 'net.nlacombe:io-lib:3.6.3'
-	compile 'org.slf4j:slf4j-api:1.7.13'
+	compile 'net.nlacombe:io-lib:4.0.0'
+	compile 'org.slf4j:slf4j-api:1.7.25'
 }
 
 repositories {
@@ -45,6 +45,6 @@ artifacts {
 }
 
 task wrapper(type: Wrapper) {
-	gradleVersion = '3.2.1'
+	gradleVersion = '4.2'
 }
 
